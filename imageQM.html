@@ -29,12 +29,16 @@
     text-align: center;
   }
 
-  #uploader { margin: 1em; }
+  #uploader { 
+    margin: 2em;
+    font-family: monospace; 
+    font-weight: bold;
+  }
 
   button {
     font-weight: bold;
-    background: #444;
-    color: #fff;
+    background: lightgrey;
+    color: rgba(255, 0, 0, 0.4);
     border: none;
     padding: 0.5em 1em;
     margin: 0.5em;
@@ -97,6 +101,10 @@
     font-weight: bold;
   }
 
+  #toggleMargin {
+    text-align:left;
+  }
+
   .warning { color: #ff5555; }
   .good { color: #88ff88; }
 
@@ -110,8 +118,8 @@
 <body>
 
 <h1>Basic Image Quality Evaluation</h1>
-<input type="file" id="uploader" accept="image/*">
 
+<input type="file" id="uploader" accept="image/*"><button id="toggleMargin">Toggle margins (5%,5%,5%,10%)</button>
 <div id="container">
   <div>
     <div class="canvas-wrapper" id="canvasWrapper">
@@ -119,14 +127,13 @@
       <canvas id="overlayCanvas"></canvas>
     </div>
     <div id="exifData">EXIF data will appear here if available.</div>
-    <button id="toggleMargin">Toggle margins (5%,5%,5%,10%)</button>
+    <div id="rgbDistribution">Edge distribution: No data yet.</div>
   </div>
   <div>
     <div class="canvas-wrapper" id="canvasWrapper">
       <canvas id="histogramCombined"></canvas>
     </div>
     <div id="blackWhiteStats">No image loaded yet.</div>
-    <div id="rgbDistribution">Distribution: No data yet.</div>
   </div>
 </div>
 <div id="container">
@@ -312,7 +319,7 @@ function calculateEdgeRGB(imgData) {
 
   // Display the results on the website
   const rgbDistributionElem = document.getElementById('rgbDistribution');
-  rgbDistributionElem.innerHTML = `Distribution: ${results}`;
+  rgbDistributionElem.innerHTML = `Edge distribution: ${results}`;
 }
 
 // EXIF
