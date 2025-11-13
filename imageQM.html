@@ -5,19 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Basic Image Quality Analyzer</title>
 
-<script>
+<script src="https://cdn.jsdelivr.net/npm/tiff.js"></script> <!-- Added tiff.js -->
+
+<!-- <script>
   function loadExifJs() {
     const script = document.createElement('script');
     script.src = 'https://cdn.jsdelivr.net/npm/exif-js';
     script.onerror = () => {
       const fallbackScript = document.createElement('script');
-      fallbackScript.src = './exif.js';
+      fallbackScript.src = './exif-js.js';
+      document.head.appendChild(fallbackScript);
+    };
+    document.head.appendChild(script);
+  }
+  loadExifJs();
+</script> -->
+
+<script>
+  function loadExifJs() {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/exifreader@4.32.0/dist/exif-reader.js';
+    script.onerror = () => {
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = './exif-reader.js';
       document.head.appendChild(fallbackScript);
     };
     document.head.appendChild(script);
   }
   loadExifJs();
 </script>
+<script src="https://cdn.jsdelivr.net/npm/exifreader@4.12.0/dist/exif-reader.js"></script>
 
 <style>
   body {
@@ -136,11 +153,6 @@
     <div id="blackWhiteStats">No image loaded yet.</div>
   </div>
 </div>
-<div id="container">
-  <div>
-    
-  </div>
-</div>
 
 <div id="tooltip"></div>
 
@@ -166,37 +178,87 @@ uploader.addEventListener('change', (e) => {
   const file = e.target.files[0];
   if (!file) return;
 
-  const img = new Image();
-  img.onload = () => {
-    imgWidth = img.width;
-    imgHeight = img.height;
+  const fileReader = new FileReader();
+  
+  // Use FileReader to read the file as an ArrayBuffer
+  fileReader.onload = (event) => {
+    const arrayBuffer = event.target.result;
 
-    // Set actual canvas pixel sizes
-    canvas.width = imgWidth;
-    canvas.height = imgHeight;
-    overlay.width = imgWidth;
-    overlay.height = imgHeight;
+    // Check for TIFF format
+    if (file.name.endsWith('.tif') || file.name.endsWith('.tiff')) {
+      Tiff.initialize({TOTAL_MEMORY: 350000000}); // Initialize the memory with 197 MB
+      const tiff = new Tiff({ buffer: arrayBuffer });
+      const image = tiff.toCanvas();
+      if (image) {
+        imgWidth = image.width;
+        imgHeight = image.height;
 
-    // Match CSS size to display proportionally
-    const maxDisplayWidth = wrapper.clientWidth || window.innerWidth * 0.5;
-    const scale = Math.min(maxDisplayWidth / imgWidth, 1);
-    const displayWidth = imgWidth * scale;
-    const displayHeight = imgHeight * scale;
+        canvas.width = imgWidth;
+        canvas.height = imgHeight;
+        overlay.width = imgWidth;
+        overlay.height = imgHeight;
 
-    ctx.drawImage(img, 0, 0);
-    imgData = ctx.getImageData(0,0,imgWidth,imgHeight);
-    calculateEdgeRGB(imgData);
-    drawHistogram(imgData);
-    calcBlackWhite(imgData);
+        ctx.drawImage(image, 0, 0);
+
+        imgData = ctx.getImageData(0, 0, imgWidth, imgHeight);
+        calculateEdgeRGB(imgData);
+        drawHistogram(imgData);
+        calcBlackWhite(imgData);
+      }
+    } else {
+      const img = new Image();
+      img.onload = () => {
+        imgWidth = img.width;
+        imgHeight = img.height;
+
+        canvas.width = imgWidth;
+        canvas.height = imgHeight;
+        overlay.width = imgWidth;
+        overlay.height = imgHeight;
+
+        ctx.drawImage(img, 0, 0);
+        imgData = ctx.getImageData(0, 0, imgWidth, imgHeight);
+        calculateEdgeRGB(imgData);
+        drawHistogram(imgData);
+        calcBlackWhite(imgData);
+      };
+      img.src = URL.createObjectURL(file);
+    };
   };
-  img.src = URL.createObjectURL(file);
 
-  EXIF.getData(file, function() {
+  // Read the file as an ArrayBuffer
+  fileReader.readAsArrayBuffer(file);
+
+/*   EXIF.getData(file, function() {
     const iso = EXIF.getTag(this, 'ISOSpeedRatings');
     const aperture = EXIF.getTag(this, 'FNumber');
     const exposure = EXIF.getTag(this, 'ExposureTime');
+    console.log(iso,aperture,exposure);
     displayEXIF(iso, aperture, exposure);
-  });
+  });  */
+
+function computeFraction(fractionArray) {
+    if (fractionArray.length === 2) {
+        const [numerator, denominator] = fractionArray; 
+        return numerator / denominator;
+    } else if (fractionArray.length === 1) {
+        return fractionArray[0] / 1;
+    } else {
+        throw new Error("Fraction must have one or two elements.");
+    }
+}
+
+async function processExifData(file) {
+  const tags = await ExifReader.load(file);
+  console.log(tags);
+  const iso = tags['ISOSpeedRatings'] ? tags['ISOSpeedRatings'].value : undefined;
+  const aperture = tags['FNumber'] ? computeFraction(tags['FNumber'].value) : undefined;
+  const exposure = tags['ExposureTime'] ? computeFraction(tags['ExposureTime'].value) : undefined;
+  displayEXIF(iso, aperture, exposure);
+};
+
+processExifData(file);
+
 });
 
 // Tooltip behavior
