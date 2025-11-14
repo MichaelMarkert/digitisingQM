@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Basic Image Quality Analyzer</title>
 
-<script src="https://cdn.jsdelivr.net/npm/tiff.js"></script> <!-- Added tiff.js -->
+<script>
+  function loadExifJs() {
+    const script = document.createElement('script');
+    script.src = 'https://cdn.jsdelivr.net/npm/tiff.js';
+    script.onerror = () => {
+      const fallbackScript = document.createElement('script');
+      fallbackScript.src = './tiff.js';
+      document.head.appendChild(fallbackScript);
+    };
+    document.head.appendChild(script);
+  }
+  loadExifJs();
+</script>
 
 <!-- <script>
   function loadExifJs() {
@@ -34,7 +46,6 @@
   }
   loadExifJs();
 </script>
-<script src="https://cdn.jsdelivr.net/npm/exifreader@4.12.0/dist/exif-reader.js"></script>
 
 <style>
   body {
@@ -195,13 +206,11 @@ uploader.addEventListener('change', (e) => {
 
   const fileReader = new FileReader();
   
-  // Use FileReader to read the file as an ArrayBuffer
   fileReader.onload = (event) => {
     const arrayBuffer = event.target.result;
 
-    // Check for TIFF format
     if (file.name.endsWith('.tif') || file.name.endsWith('.tiff')) {
-      Tiff.initialize({TOTAL_MEMORY: 350000000}); // Initialize the memory with 197 MB
+      Tiff.initialize({TOTAL_MEMORY: 524288000}); // Initialize the memory with 500MB for TIFF
       const tiff = new Tiff({ buffer: arrayBuffer });
       const image = tiff.toCanvas();
       if (image) {
@@ -241,7 +250,6 @@ uploader.addEventListener('change', (e) => {
     };
   };
 
-  // Read the file as an ArrayBuffer
   fileReader.readAsArrayBuffer(file);
 
 /*   EXIF.getData(file, function() {
@@ -276,7 +284,6 @@ processExifData(file);
 
 });
 
-// Tooltip behavior
 canvas.addEventListener('mousemove', (e) => {
   if (!imgData) return;
   const rect = canvas.getBoundingClientRect();
@@ -305,7 +312,6 @@ canvas.addEventListener('mousemove', (e) => {
 });
 canvas.addEventListener('mouseleave', ()=> tooltip.style.display='none');
 
-// Histogram
 function drawHistogram(imageData){
   const histR=new Array(256).fill(0), histG=new Array(256).fill(0), histB=new Array(256).fill(0);
   for(let i=0;i<imageData.data.length;i+=4){
@@ -328,7 +334,6 @@ function drawHistogram(imageData){
   histCtx.globalAlpha=1.0;
 }
 
-// Black/white pixel % 
 function calcBlackWhite(imageData){
   const data=imageData.data;
   let black=0, white=0;
@@ -346,14 +351,9 @@ function calcBlackWhite(imageData){
   blackWhiteStats.textContent=msg;
 }
 
-//EdgeRGB
 function calculateEdgeRGB(imgData) {
   const { width, height, data } = imgData;
-
-  // Define circle radius as 5% of the image width
   const radius = Math.floor(width * 0.05);
-
-  // Define the 4 edge points (10% horizontally and vertically)
   const points = [
     { name: "<br>topL", x: Math.floor(width * 0.1), y: Math.floor(height * 0.1) },
     { name: "topR", x: Math.floor(width * 0.9), y: Math.floor(height * 0.1) },
@@ -366,40 +366,33 @@ function calculateEdgeRGB(imgData) {
   points.forEach(({ name, x, y }) => {
     let totalR = 0, totalG = 0, totalB = 0;
 
-    // Choose 10 random pixels within the circle
     for (let i = 0; i < 10; i++) {
-      const angle = Math.random() * 2 * Math.PI; // Random angle
-      const distance = Math.random() * radius;  // Random distance within radius
+      const angle = Math.random() * 2 * Math.PI; 
+      const distance = Math.random() * radius;  
       const px = Math.floor(x + distance * Math.cos(angle));
       const py = Math.floor(y + distance * Math.sin(angle));
 
-      // Ensure the pixel is within bounds
       if (px >= 0 && px < width && py >= 0 && py < height) {
         const index = (py * width + px) * 4;
-        totalR += data[index];     // Red channel
-        totalG += data[index + 1]; // Green channel
-        totalB += data[index + 2]; // Blue channel
+        totalR += data[index];     
+        totalG += data[index + 1];
+        totalB += data[index + 2]; 
       }
     }
 
-    // Calculate the average RGB values
     const avgR = Math.round(totalR / 10);
     const avgG = Math.round(totalG / 10);
     const avgB = Math.round(totalB / 10);
 
-    // Append the result to the display string
     results += `${name}: ${avgR},${avgG},${avgB} `;
   });
 
-  // Remove the trailing semicolon and space
   results = results.trim().replace(/;$/, "");
 
-  // Display the results on the website
   const rgbDistributionElem = document.getElementById('rgbDistribution');
   rgbDistributionElem.innerHTML = `Edge distribution: ${results}`;
 }
 
-// EXIF
 function displayEXIF(iso, aperture, exposure){
   if(!iso&&!aperture&&!exposure){exifDataElem.textContent="No EXIF.";return;}
   let shutter='N/A';
@@ -413,7 +406,6 @@ function displayEXIF(iso, aperture, exposure){
   }else exifDataElem.classList.add('good');
 }
 
-// Toggle overlay
 toggleButton.addEventListener('click',()=>{
   if(!imgData) return;
   overlayVisible=!overlayVisible;
