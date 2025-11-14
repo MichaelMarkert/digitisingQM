@@ -46,22 +46,35 @@
     text-align: center;
   }
 
-  #uploader { 
+  input[type="file"] {
+      display: none;
+  }
+
+  .custom-file-upload {
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
+    cursor: pointer;
     margin: 2em;
     font-family: monospace; 
     font-weight: bold;
   }
 
+  .custom-file-upload:hover { background: #666; }
+
   button {
-    font-weight: bold;
-    background: lightgrey;
-    color: rgba(255, 0, 0, 0.4);
-    border: none;
-    padding: 0.5em 1em;
-    margin: 0.5em;
+    background: #1e1e1e;
+    border: 1px solid #ccc;
+    display: inline-block;
+    padding: 6px 12px;
     cursor: pointer;
-    border-radius: 5px;
+    margin: 2em;
+    font-family: monospace; 
+    font-weight: bold;
+    font-weight: bold;
+    color: rgba(255, 77, 77, 0.6);
   }
+
   button:hover { background: #666; }
 
   #container {
@@ -136,7 +149,9 @@
 
 <h1>Basic Image Quality Evaluation</h1>
 
-<input type="file" id="uploader" accept="image/*"><button id="toggleMargin">Toggle margins (5%,5%,5%,10%)</button>
+<label class="custom-file-upload"><input type="file" id="uploader" accept="image/*">Upload image</label>
+<button id="toggleMargin">Toggle margins (5%,5%,5%,10%)</button>
+
 <div id="container">
   <div>
     <div class="canvas-wrapper" id="canvasWrapper">
