@@ -450,10 +450,9 @@ function drawGridOverlay() {
   const w = gridCanvas.width;
   const h = gridCanvas.height;
   
-  gctx.strokeStyle = "rgba(255, 255, 0, 1)"; // yellow with 50% opacity
-  gctx.lineWidth = 10;
+  gctx.strokeStyle = "rgba(253, 61, 181, 1)";
+  gctx.lineWidth = w/300;
   
-  // Diagonal cross (top-left to bottom-right, top-right to bottom-left)
   gctx.beginPath();
   gctx.moveTo(0, 0);
   gctx.lineTo(w, h);
@@ -464,7 +463,6 @@ function drawGridOverlay() {
   gctx.lineTo(0, h);
   gctx.stroke();
   
-  // Regular cross (vertical and horizontal through center)
   gctx.beginPath();
   gctx.moveTo(w / 2, 0);
   gctx.lineTo(w / 2, h);
@@ -476,8 +474,8 @@ function drawGridOverlay() {
   gctx.stroke();
   
   // Rule of thirds lines
-  gctx.strokeStyle = "rgba(100, 100, 100, 1)"; // white with 40% opacity
-  gctx.lineWidth = 10;
+  gctx.strokeStyle = "rgba(0, 255, 255, 1)"; 
+  gctx.lineWidth = w/300;
   
   // Vertical thirds
   gctx.beginPath();
